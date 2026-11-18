@@ -3,6 +3,39 @@
   "functions": {
     "api/mcp.ts": {
       "maxDuration": 60
+    },
+    "api/oauth.ts": {
+      "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "/api/oauth?oauth_action=resource"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource/api/mcp",
+      "destination": "/api/oauth?oauth_action=resource"
+    },
+    {
+      "source": "/.well-known/oauth-authorization-server",
+      "destination": "/api/oauth?oauth_action=metadata"
+    },
+    {
+      "source": "/.well-known/openid-configuration",
+      "destination": "/api/oauth?oauth_action=metadata"
+    },
+    {
+      "source": "/authorize",
+      "destination": "/api/oauth?oauth_action=authorize"
+    },
+    {
+      "source": "/token",
+      "destination": "/api/oauth?oauth_action=token"
+    },
+    {
+      "source": "/register",
+      "destination": "/api/oauth?oauth_action=register"
+    }
+  ]
 }
