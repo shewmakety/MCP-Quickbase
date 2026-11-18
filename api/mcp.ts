@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { Request, Response } from "express";
 import { timingSafeEqual } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -41,7 +41,7 @@ function authorized(value: string | undefined): boolean {
   return received.length === expected.length && timingSafeEqual(received, expected);
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: Request, res: Response) {
   res.setHeader("Cache-Control", "no-store");
   if (!authorized(req.headers.authorization)) {
     res.setHeader("WWW-Authenticate", 'Bearer realm="quickbase-mcp"');
