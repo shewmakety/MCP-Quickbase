@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { timingSafeEqual } from "node:crypto";
+import { oauthClaims, resourceChallenge } from "./oauth";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { QuickbaseClient } from "../src/client/quickbase";
@@ -33,18 +33,10 @@ function init(): void {
   initialized = true;
 }
 
-function authorized(value: string | undefined): boolean {
-  const secret = process.env.MCP_BEARER_TOKEN;
-  if (!secret || !value?.startsWith("Bearer ")) return false;
-  const received = Buffer.from(value.slice(7));
-  const expected = Buffer.from(secret);
-  return received.length === expected.length && timingSafeEqual(received, expected);
-}
-
 export default async function handler(req: Request, res: Response) {
   res.setHeader("Cache-Control", "no-store");
-  if (!authorized(req.headers.authorization)) {
-    res.setHeader("WWW-Authenticate", 'Bearer realm="quickbase-mcp"');
+  if (!oauthClaims(req.headers.authorization)) {
+    res.setHeader("WWW-Authenticate", resourceChallenge());
     return res.status(401).json({ error: "Unauthorized" });
   }
   if (req.method !== "POST") {
