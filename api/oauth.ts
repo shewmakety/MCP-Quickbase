@@ -132,19 +132,21 @@ export default async function handler(req: Request, res: Response) {
       res.setHeader("Content-Type","text/html; charset=utf-8");
       res.setHeader("Content-Security-Policy","default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
       res.setHeader("X-Frame-Options","DENY");
-      return res.status(200).send('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Authorize Quickbase access</title></head><body style="font-family:system-ui;max-width:440px;margin:10vh auto;padding:20px"><h2>Connect ChatGPT to AOG Alerts Quickbase</h2><p>Allow read-only access to your Quickbase records. No changes or deletions will be available.</p><form method="POST" action="/authorize"><input type="hidden" name="request" value="'+esc(requestToken)+'"><label>Enter your private MCP bearer token<br><input type="password" name="password" required autocomplete="off" style="width:100%;padding:12px;margin:8px 0"></label><button type="submit" style="padding:12px 24px">Authorize</button></form></body></html>');
+      return res.status(200).send('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Authorize Quickbase access</title></head><body style="font-family:system-ui;max-width:440px;margin:10vh auto;padding:20px"><h2>Connect ChatGPT to AOG Alerts Quickbase</h2><p>Allow read-only access to your Quickbase records. No changes or deletions will be available.</p><form method="POST" action="/authorize?oauth_action=authorize"><input type="hidden" name="request" value="'+esc(requestToken)+'"><label>Enter your private MCP bearer token<br><input type="password" name="password" required autocomplete="off" style="width:100%;padding:12px;margin:8px 0"></label><button type="submit" style="padding:12px 24px">Authorize</button></form></body></html>');
     }
     if (action === "authorize" && req.method === "POST") {
       const b=form(req), data=decode(b.request,"request"), secret=process.env.MCP_BEARER_TOKEN;
+      console.info("OAuth authorization POST", { bodyParsed: Boolean(b.request), requestValid: Boolean(data), tokenEntered: Boolean(b.password) });
       if (!data || !secret || !safeEqual(b.password||"",secret) ||
           !getClient(data.client_id) || !allowedRedirect(data.redirect_uri)) {
-        return res.status(403).set("Content-Type","text/plain").send("Authorization failed");
+        return res.status(403).set("Content-Type","text/html; charset=utf-8").send('<!doctype html><html><body style="font-family:system-ui;max-width:520px;margin:10vh auto"><h2>Authorization failed</h2><p>The credential was not accepted or the authorization request expired. Return to ChatGPT and choose Connect again to get a fresh authorization page.</p></body></html>');
       }
       const code=token({...data,iss:ISSUER}, "code", 120);
       const redirect=new URL(data.redirect_uri);
       redirect.searchParams.set("code",code);
       if(data.state) redirect.searchParams.set("state",data.state);
-      return res.redirect(302,redirect.toString());
+      console.info("OAuth authorization accepted; redirecting to callback");
+      return res.redirect(303,redirect.toString());
     }
     if (action === "token" && req.method === "POST") {
       const b=form(req);
