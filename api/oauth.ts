@@ -130,7 +130,7 @@ export default async function handler(req: Request, res: Response) {
         state:q.state||"",scope:"quickbase:read offline_access",resource:q.resource||RESOURCE};
       const requestToken=token(params,"request",600);
       res.setHeader("Content-Type","text/html; charset=utf-8");
-      res.setHeader("Content-Security-Policy","default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+      res.setHeader("Content-Security-Policy","default-src 'none'; style-src 'unsafe-inline'; form-action 'self' https://chatgpt.com https://chat.openai.com https://openai.com https://*.openai.com; base-uri 'none'; frame-ancestors 'none'");
       res.setHeader("X-Frame-Options","DENY");
       return res.status(200).send('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Authorize Quickbase access</title></head><body style="font-family:system-ui;max-width:440px;margin:10vh auto;padding:20px"><h2>Connect ChatGPT to AOG Alerts Quickbase</h2><p>Allow read-only access to your Quickbase records. No changes or deletions will be available.</p><form method="POST" action="/authorize?oauth_action=authorize"><input type="hidden" name="request" value="'+esc(requestToken)+'"><label>Enter your private MCP bearer token<br><input type="password" name="password" required autocomplete="off" style="width:100%;padding:12px;margin:8px 0"></label><button type="submit" style="padding:12px 24px">Authorize</button></form></body></html>');
     }
